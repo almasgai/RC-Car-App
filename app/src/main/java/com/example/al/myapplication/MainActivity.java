@@ -1,5 +1,7 @@
 package com.example.al.myapplication;
 
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -16,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
     ImageButton leftButton;
     ImageButton rightButton;
     ToggleButton toggleAutonomous;
+    BluetoothAdapter bluetoothAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +32,16 @@ public class MainActivity extends AppCompatActivity {
         leftButton = (ImageButton) findViewById(R.id.leftButton);
         rightButton = (ImageButton) findViewById(R.id.rightButton);
         toggleAutonomous = (ToggleButton)findViewById(R.id.toggleAutonomous);
+
+        // Creating Bluetooth Adapter, an object that is required for all Bluetooth activity
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        // Enabling Bluetooth
+        if(!bluetoothAdapter.isEnabled()){
+            Intent enableBluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBluetoothIntent, 1);
+        }
+
 
     }
 
