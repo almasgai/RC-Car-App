@@ -11,8 +11,8 @@
 
     <Button
         android:id="@+id/forwardButton"
-        android:layout_width="253dp"
-        android:layout_height="144dp"
+        android:layout_width="136dp"
+        android:layout_height="145dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
@@ -21,9 +21,10 @@
         android:text="Drive"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.923"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/rightButton"
-        app:layout_constraintTop_toTopOf="@+id/rightButton" />
+        app:layout_constraintTop_toTopOf="@+id/rightButton"
+        app:layout_constraintVertical_bias="1.0" />
 
     <ToggleButton
         android:id="@+id/toggleAutonomous"
@@ -46,8 +47,8 @@
 
     <ImageButton
         android:id="@+id/leftButton"
-        android:layout_width="149dp"
-        android:layout_height="159dp"
+        android:layout_width="119dp"
+        android:layout_height="150dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
@@ -62,18 +63,18 @@
 
     <ImageButton
         android:id="@+id/rightButton"
-        android:layout_width="145dp"
-        android:layout_height="158dp"
+        android:layout_width="128dp"
+        android:layout_height="147dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="380dp"
         android:layout_marginStart="8dp"
         android:onClick="rightArrow"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.027"
         app:layout_constraintStart_toEndOf="@+id/leftButton"
         app:layout_constraintTop_toTopOf="@+id/leftButton"
-        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintVertical_bias="1.0"
         app:srcCompat="@mipmap/right" />
 
     <Button
