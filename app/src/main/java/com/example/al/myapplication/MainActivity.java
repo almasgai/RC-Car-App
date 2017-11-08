@@ -1,5 +1,6 @@
 package com.example.al.myapplication;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -9,6 +10,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,71 +32,6 @@ public class MainActivity extends AppCompatActivity {
 
     private Toolbar mTopToolbar;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        mTopToolbar = (Toolbar)findViewById(R.id.my_toolbar);
-
-
-        powerButton = findViewById(R.id.powerOnOff);
-        forwardButton = findViewById(R.id.forwardButton);
-        leftButton = findViewById(R.id.leftButton);
-        rightButton = findViewById(R.id.rightButton);
-        toggleAutonomous = findViewById(R.id.toggleAutonomous);
-
-        // Creating Bluetooth Adapter, an object that is required for all Bluetooth activity
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        // Enabling Bluetooth
-        if(!bluetoothAdapter.isEnabled()){
-            Intent enableBluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBluetoothIntent, 1);
-        }
-
-        // Querying paired devices AKA looking for devices that were previously connected to phone
-
-        //List of paired devices
-        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
-
-        // Checking to see if there are Bluetooth devices already paired with device
-        if(pairedDevices.size() > 0){
-            // There are paired devices if the program can get in this if statement
-            for (BluetoothDevice device : pairedDevices){
-                String deviceName = device.getName();
-                String deviceHardwareAddress = device.getAddress();
-                Toast.makeText(this, deviceName + " - " + deviceHardwareAddress , Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        // DISCOVERING DEVICES
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(receiver, filter);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_favorite) {
-            Toast.makeText(MainActivity.this, "Action clicked", Toast.LENGTH_LONG).show();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
     // Create a BroadcastReceiver for ACTION_FOUND
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -115,6 +52,10 @@ public class MainActivity extends AppCompatActivity {
 
                 // Obtaining device MAC address
                 String deviceHardwareAddress = device.getAddress();
+
+                Toast.makeText(context.getApplicationContext(),"test", Toast.LENGTH_SHORT);
+
+                Log.e(deviceName.toUpperCase(), " - " + deviceHardwareAddress);
             }
         }
     };
@@ -159,5 +100,79 @@ public class MainActivity extends AppCompatActivity {
 
     public BluetoothAdapter getBluetoothAdapter(){
         return bluetoothAdapter;
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_favorite) {
+            Toast.makeText(MainActivity.this, "Action clicked", Toast.LENGTH_LONG).show();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        mTopToolbar = (Toolbar)findViewById(R.id.my_toolbar);
+
+
+        powerButton = findViewById(R.id.powerOnOff);
+        forwardButton = findViewById(R.id.forwardButton);
+        leftButton = findViewById(R.id.leftButton);
+        rightButton = findViewById(R.id.rightButton);
+        toggleAutonomous = findViewById(R.id.toggleAutonomous);
+
+        // Creating Bluetooth Adapter, an object that is required for all Bluetooth activity
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        // Enabling Bluetooth
+        if(!bluetoothAdapter.isEnabled()){
+            Intent enableBluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBluetoothIntent, 1);
+        }
+
+        // Querying paired devices AKA looking for devices that were previously connected to phone
+
+        //List of paired devices
+        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+
+        // Checking to see if there are Bluetooth devices already paired with device
+        if(pairedDevices.size() > 0){
+            // There are paired devices if the program can get in this if statement
+            for (BluetoothDevice device : pairedDevices){
+                String deviceName = device.getName();
+                String deviceHardwareAddress = device.getAddress();
+                Toast.makeText(this, deviceName + " - " + deviceHardwareAddress , Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 60);
+        startActivity(discoverableIntent);
+
+        // DISCOVERING DEVICES
+        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        registerReceiver(receiver, filter);
+
+
+
     }
 }
