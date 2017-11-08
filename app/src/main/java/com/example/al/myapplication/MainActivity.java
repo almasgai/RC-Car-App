@@ -6,9 +6,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.MotionEvent;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -26,12 +28,15 @@ public class MainActivity extends AppCompatActivity {
     ToggleButton toggleAutonomous;
     BluetoothAdapter bluetoothAdapter;
 
+    private Toolbar mTopToolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toast.makeText(this, "Starting app now...", Toast.LENGTH_SHORT).show();
+        mTopToolbar = (Toolbar)findViewById(R.id.my_toolbar);
+
 
         powerButton = findViewById(R.id.powerOnOff);
         forwardButton = findViewById(R.id.forwardButton);
@@ -59,20 +64,42 @@ public class MainActivity extends AppCompatActivity {
             for (BluetoothDevice device : pairedDevices){
                 String deviceName = device.getName();
                 String deviceHardwareAddress = device.getAddress();
+                Toast.makeText(this, deviceName + " - " + deviceHardwareAddress , Toast.LENGTH_SHORT).show();
             }
         }
 
         // DISCOVERING DEVICES
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(receiver, filter);
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_favorite) {
+            Toast.makeText(MainActivity.this, "Action clicked", Toast.LENGTH_LONG).show();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     // Create a BroadcastReceiver for ACTION_FOUND
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
 
         @Override
-
         public void onReceive(Context context, Intent intent) {
 
             String action = intent.getAction();
@@ -96,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        // Unregistering the ACTION_FOUND reciever
+        // Unregister the ACTION_FOUND receiver
         unregisterReceiver(receiver);
     }
 
@@ -124,5 +151,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void driveButton(View view){
         Toast.makeText(this, "Driving car forward", Toast.LENGTH_SHORT).show();
+    }
+
+    public void setBluetoothAdapter(BluetoothAdapter bluetoothAdapter){
+        this.bluetoothAdapter = bluetoothAdapter;
+    }
+
+    public BluetoothAdapter getBluetoothAdapter(){
+        return bluetoothAdapter;
     }
 }

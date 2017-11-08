@@ -9,6 +9,14 @@
     tools:context="com.example.al.myapplication.MainActivity"
     tools:layout_editor_absoluteY="73dp">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        style="@style/HeaderBar"
+        android:elevation="4dp"
+        />
+
     <Button
         android:id="@+id/forwardButton"
         android:layout_width="253dp"
@@ -122,4 +130,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.176" />
+
 </android.support.constraint.ConstraintLayout>

@@ -71,10 +71,10 @@
         android:onClick="rightArrow"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.027"
+        app:layout_constraintHorizontal_bias="0.034"
         app:layout_constraintStart_toEndOf="@+id/leftButton"
         app:layout_constraintTop_toTopOf="@+id/leftButton"
-        app:layout_constraintVertical_bias="1.0"
+        app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@mipmap/right" />
 
     <Button
