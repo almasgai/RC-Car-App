@@ -1,0 +1,6 @@
+*.class
+*.java
+*.exe
+html/
+doc/
+latex/
