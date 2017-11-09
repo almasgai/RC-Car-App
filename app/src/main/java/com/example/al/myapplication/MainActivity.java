@@ -173,7 +173,6 @@ public class MainActivity extends AppCompatActivity {
                 list.add(device.getName());
 
             }
-            list.add(pairedDevices);
             arrayAdapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_expandable_list_item_1, list);
             listView = (ListView)findViewById(R.id.listViewID);
             listView.setAdapter(arrayAdapter);
