@@ -15,9 +15,6 @@ import static android.content.ContentValues.TAG;
 
 public class ConnectThread extends Thread{
 
-    /**@TODO: Figure out why these aren't working
-     *################### Deleting private final for now...
-     */
     BluetoothSocket btSocket;
     BluetoothDevice btDevice;
     private BluetoothAdapter bluetoothAdapter;

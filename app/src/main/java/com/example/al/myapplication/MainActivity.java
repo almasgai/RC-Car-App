@@ -14,11 +14,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
@@ -29,6 +32,10 @@ public class MainActivity extends AppCompatActivity {
     ImageButton rightButton;
     ToggleButton toggleAutonomous;
     BluetoothAdapter bluetoothAdapter;
+
+    ArrayList list;
+    ArrayAdapter arrayAdapter;
+    ListView listView;
 
     private Toolbar mTopToolbar;
 
@@ -156,12 +163,20 @@ public class MainActivity extends AppCompatActivity {
 
         // Checking to see if there are Bluetooth devices already paired with device
         if(pairedDevices.size() > 0){
+            list = new ArrayList();
             // There are paired devices if the program can get in this if statement
             for (BluetoothDevice device : pairedDevices){
-                String deviceName = device.getName();
-                String deviceHardwareAddress = device.getAddress();
-                Toast.makeText(this, deviceName + " - " + deviceHardwareAddress , Toast.LENGTH_SHORT).show();
+                // String deviceName = device.getName();
+                // String deviceHardwareAddress = device.getAddress();
+
+                // Adding names to list
+                list.add(device.getName());
+
             }
+            list.add(pairedDevices);
+            arrayAdapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_expandable_list_item_1, list);
+            listView = (ListView)findViewById(R.id.listViewID);
+            listView.setAdapter(arrayAdapter);
         }
 
         Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
@@ -171,7 +186,6 @@ public class MainActivity extends AppCompatActivity {
         // DISCOVERING DEVICES
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(receiver, filter);
-
 
 
     }
