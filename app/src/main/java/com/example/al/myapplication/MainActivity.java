@@ -1,12 +1,17 @@
 package com.example.al.myapplication;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
@@ -24,11 +29,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     Button powerButton;
     Button forwardButton;
@@ -37,10 +44,24 @@ public class MainActivity extends AppCompatActivity {
     ToggleButton toggleAutonomous;
     BluetoothAdapter bluetoothAdapter;
     Intent enableBluetoothIntent;
+    private ProgressDialog progress;
+    String address = null;
+    BluetoothDevice bluetoothDevice;
+
+    BluetoothSocket btSocket = null;
+    private boolean isBtConnected = false;
 
     ArrayList list;
     ArrayAdapter arrayAdapter;
     ListView listView;
+
+    String TAG = "Main Activity";
+
+    private static final UUID MY_UUID_SECURE =
+            UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
+    // new UUID: 00001101-0000-1000-8000-00805F9B34FB
+    // old UUID: 8ce255c0-200a-11e0-ac64-0800200c9a66
 
     // Create a BroadcastReceiver for ACTION_FOUND
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -50,28 +71,119 @@ public class MainActivity extends AppCompatActivity {
 
             String action = intent.getAction();
 
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+            if (action.equals(bluetoothAdapter.ACTION_STATE_CHANGED)) {
 
-                // Discovery has found a device. Get the Bluetooth object
-                // and its info from the intent.
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, bluetoothAdapter.ERROR);
 
-                // Obtaining device name
-                String deviceName = device.getName();
+                switch (state){
+                    case BluetoothAdapter.STATE_OFF:
+                        Log.d(TAG, "onReceive: State Off");
+                        break;
 
-                // Obtaining device MAC address
-                String deviceHardwareAddress = device.getAddress();
+                    case BluetoothAdapter.STATE_TURNING_OFF:
+                        Log.d(TAG, "onReceive: State turning Off");
+                        break;
 
-                Toast.makeText(context.getApplicationContext(), "test", Toast.LENGTH_SHORT);
+                    case BluetoothAdapter.STATE_ON:
+                        Log.d(TAG, "onReceive: State On");
+                        break;
 
-                Log.e(deviceName.toUpperCase(), " - " + deviceHardwareAddress);
+                    case BluetoothAdapter.STATE_TURNING_ON:
+                        Log.d(TAG, "onReceive: State Turning On");
+                        break;
+                }
+            }
+        }
+    };
+
+
+    public void btnEnableDisable_Discoverable(View view) {
+        Log.d(TAG, "btnEnableDisable_Discoverable: Making device discoverable for 300 seconds.");
+
+        Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+        startActivity(discoverableIntent);
+
+        IntentFilter intentFilter = new IntentFilter(bluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
+        registerReceiver(mBroadcastReceiver2,intentFilter);
+    }
+
+//    public void btnDiscover(View view){
+//        Log.d(TAG, "btnDiscover: Looking for unpaired devices.");
+//
+//        if(bluetoothAdapter.isDiscovering()){
+//            bluetoothAdapter.cancelDiscovery();
+//            Log.d(TAG, "btnDiscover: cancel discovery");
+//
+//            checkBTPermission();
+//
+//            bluetoothAdapter.startDiscovery();
+//            IntentFilter discoverDevicesIntent = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+//            registerReceiver(mBroadcastReceiver3, discoverDevicesIntent);
+//        }
+//
+//        if(!bluetoothAdapter.isDiscovering()){
+//            checkBTPermission();
+//        }
+//    }
+
+    private void checkBTPermission(){
+        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP){
+            int permissionCheck = this.checkSelfPermission("Manifist.permission.ACCESS_FINE_LOCATION");
+            permissionCheck += this.checkSelfPermission("Manifist.permission.ACCESS_COARSE_LOCATION");
+            if (permissionCheck != 0){
+                this.requestPermissions(new String[]{ Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 25);
+            }else{
+                Log.d(TAG, "Device is below lollipop");
+
+            }
+        }
+    }
+
+    /**
+     * Broadcast Receiver for changes made to bluetooth states such as:
+     * 1) Discoverability mode on/off or expire.
+     */
+    private final BroadcastReceiver mBroadcastReceiver2 = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+
+            if (action.equals(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED)) {
+
+                int mode = intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, BluetoothAdapter.ERROR);
+
+                switch (mode) {
+                    //Device is in Discoverable Mode
+                    case BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE:
+                        Log.d(TAG, "mBroadcastReceiver2: Discoverability Enabled.");
+                        break;
+                    //Device not in discoverable mode
+                    case BluetoothAdapter.SCAN_MODE_CONNECTABLE:
+                        Log.d(TAG, "mBroadcastReceiver2: Discoverability Disabled. Able to receive connections.");
+                        break;
+                    case BluetoothAdapter.SCAN_MODE_NONE:
+                        Log.d(TAG, "mBroadcastReceiver2: Discoverability Disabled. Not able to receive connections.");
+                        break;
+                    case BluetoothAdapter.STATE_CONNECTING:
+                        Log.d(TAG, "mBroadcastReceiver2: Connecting....");
+                        break;
+                    case BluetoothAdapter.STATE_CONNECTED:
+                        Log.d(TAG, "mBroadcastReceiver2: Connected.");
+                        break;
+                }
+
             }
         }
     };
 
     @Override
     protected void onDestroy() {
+        Log.d(TAG, "onDestroy: called");
         super.onDestroy();
+        unregisterReceiver(receiver);
+        unregisterReceiver(mBroadcastReceiver2);
 
         // Unregister the ACTION_FOUND receiver
     }
@@ -151,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
             // String deviceHardwareAddress = device.getAddress();
 
             // Adding names to list
-            list.add(device.getName());
+            list.add(device.getName() + "\n" + device.getAddress());
 
         }
         arrayAdapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_expandable_list_item_1, list);
@@ -161,11 +273,12 @@ public class MainActivity extends AppCompatActivity {
 }
 
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         powerButton = findViewById(R.id.powerOnOff);
         forwardButton = findViewById(R.id.forwardButton);
@@ -177,9 +290,12 @@ public class MainActivity extends AppCompatActivity {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // Enabling Bluetooth
-        if(!bluetoothAdapter.isEnabled()){
+        if (!bluetoothAdapter.isEnabled()) {
             enableBluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBluetoothIntent, 1);
+            startActivityForResult(enableBluetoothIntent, 0);
+
+            IntentFilter BTIntent = new IntentFilter(bluetoothAdapter.ACTION_STATE_CHANGED);
+            registerReceiver(receiver, BTIntent);
         }
 
         // Querying paired devices AKA looking for devices that were previously connected to phone
@@ -191,18 +307,60 @@ public class MainActivity extends AppCompatActivity {
         pairedDeviceList();
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            boolean ConnectSuccess = true; //if it's here, it's almost connected
+
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
+                String info = ((TextView) view).getText().toString();
+                String address = info.substring(info.length() - 17);
+
+                bluetoothAdapter.cancelDiscovery();
 
 
+                try {
+                    if (btSocket == null || !isBtConnected) {
+                        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();//get the mobile bluetooth device
+                        BluetoothDevice dispositivo = bluetoothAdapter.getRemoteDevice(address);//connects to the device's address and checks if it's available
+                        btSocket = dispositivo.createInsecureRfcommSocketToServiceRecord(MY_UUID_SECURE);//create a RFCOMM (SPP) connection
+                        BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
+                        btSocket.connect();//start connection
+                    }
+                } catch (IOException e) {
+                    ConnectSuccess = false;//if the try failed, you can check the exception here
+                    Toast.makeText(getApplicationContext(), "Unable to connect", Toast.LENGTH_LONG).show();
+                }
             }
-        });
 
+        });
     }
 
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        String info = ((TextView) view).getText().toString();
+        String address = info.substring(info.length() - 17);
+
+        bluetoothAdapter.cancelDiscovery();
 
 
+        boolean ConnectSuccess;
+        try {
+            ConnectSuccess = true;
+            if (btSocket == null || !isBtConnected) {
+                bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();//get the mobile bluetooth device
+                BluetoothDevice dispositivo = bluetoothAdapter.getRemoteDevice(address);//connects to the device's address and checks if it's available
+                btSocket = dispositivo.createInsecureRfcommSocketToServiceRecord(MY_UUID_SECURE);//create a RFCOMM (SPP) connection
+                BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
+                btSocket.connect();//start connection
+            }
+        } catch (IOException e) {
+            ConnectSuccess = false;//if the try failed, you can check the exception here
+            Toast.makeText(getApplicationContext(), "Unable to connect", Toast.LENGTH_LONG).show();
+        }
+    }
 
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
+    }
 }
